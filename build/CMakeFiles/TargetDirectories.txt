@@ -1,0 +1,3 @@
+/home/aalizade/Documents/Udacity_training/path_planning/build/CMakeFiles/edit_cache.dir
+/home/aalizade/Documents/Udacity_training/path_planning/build/CMakeFiles/rebuild_cache.dir
+/home/aalizade/Documents/Udacity_training/path_planning/build/CMakeFiles/path_planning.dir
