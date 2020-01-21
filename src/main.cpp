@@ -106,38 +106,117 @@ int main() {
             car_s = end_path_s;
           }
           bool too_close = false;
+          bool car_ahead = false;
+          bool car_right = false;
+          bool car_left = false;
 
           // find reference velocity ref_v to use
           for (int i=0; i<sensor_fusion.size(); ++i)
           {
             // car in the ego lane
             float d = sensor_fusion[i][6];
-            if (d < (2+4*lane+2) && d > (2+4*lane-2))
+            int otherCar_lane = -1;
+            if ((d > 0) && (d < 4))
             {
-              double vx = sensor_fusion[i][3];
-              double vy = sensor_fusion[i][4];
-              double check_speed = sqrt(vx*vx+vy*vy);
-              double check_car_s = sensor_fusion[i][5];
+              otherCar_lane = 0;
+            }
+            else if ((d > 4) && (d < 8))
+            {
+              otherCar_lane = 1;
+            }
+            else if ((d > 8) && (d < 12))
+            {
+              otherCar_lane = 2;
+            }
+            if (otherCar_lane < 0)
+            {
+              continue;
+            }
 
-              check_car_s += ((double)prev_size*0.02*check_speed); // if using previous points can project s calues outward
-              // check s value greater than mine and s gap
-              if ((check_car_s>car_s) && ((check_car_s-car_s)<30))
+            double vx = sensor_fusion[i][3];
+            double vy = sensor_fusion[i][4];
+            double check_speed = sqrt(vx*vx+vy*vy);
+            double check_car_s = sensor_fusion[i][5];
+
+            check_car_s += ((double)prev_size*0.02*check_speed); // if using previous points can project s calues outward
+
+            if (lane == otherCar_lane)
+            {
+              car_ahead |= (check_car_s>car_s) && ((check_car_s-car_s)<30);
+            }
+            else if (otherCar_lane - lane == 1)
+            {
+              car_right |= (car_s - 30 < check_car_s) && (car_s + 30 > check_car_s);
+            }
+            else if (otherCar_lane - lane == -1)
+            {
+              car_left |= (car_s - 30 < check_car_s) && (car_s + 30 > check_car_s);
+            }
+
+          }
+
+          // behavior prediction of surrounding vehicles
+          double  speed_diff = 0;
+          if (car_ahead)
+          {
+            if (!car_left && lane > 0)
+            { // left lane is available and there is no car in left lane
+              lane--; // Change lane left
+            }
+            else if (!car_right && lane != 2)
+            { // right lane is available and there is no car in right lane
+              lane++; // Change lane right
+            }
+            else
+            {
+              speed_diff -= 0.224;
+            }
+            }
+            else
+            {
+              if (lane != 1)
+              { // if ego car is not on the center lane.
+                if ((lane == 0 && !car_right) || (lane == 2 && !car_left))
+                {
+                  lane = 1; // Back to center.
+                }
+              }
+              if (ref_vel < 49.8 )
               {
-                // decrease reference velocity
-                ref_vel = 29.8;
-                too_close = true;
+                speed_diff += 0.224;
               }
             }
-          }
 
-          if (too_close)
-          {
-            ref_vel -= 0.224;
-          }
-          else if (ref_vel<49.8)
-          {
-            ref_vel += 0.224;
-          }
+//              // check s value greater than mine and s gap
+//              if ((check_car_s>car_s) && ((check_car_s-car_s)<30))
+//              {
+//                // decrease reference velocity
+//                ref_vel = 29.8;
+//                too_close = true;
+//                if (lane > 0)
+//                {
+//                  lane = 0;
+//                }
+//              }
+//            }
+//          }
+
+          // check s value greater than mine and s gap
+//          if ((check_car_s>car_s) && ((check_car_s-car_s)<30))
+//          {
+//            // decrease reference velocity
+//            ref_vel = 29.8;
+//            too_close = true;
+//          }
+//
+//          if (too_close)
+//          {
+//            ref_vel -= 0.224;
+//          }
+//          else if (ref_vel<49.8)
+//          {
+//            ref_vel += 0.224;
+//          }
           // create a list of (x, y) waypoints
           vector<double> pts_x;
           vector<double> pts_y;
@@ -198,8 +277,8 @@ int main() {
             double shift_x = pts_x[i] - ref_x;
             double shift_y = pts_y[i] - ref_y;
 
-            pts_x[i] = (shift_x*cos(0-ref_yaw) - shift_y*sin(0-ref_yaw));
-            pts_y[i] = (shift_x*sin(0-ref_yaw) + shift_y*cos(0-ref_yaw));
+            pts_x[i] = shift_x*cos(0-ref_yaw) - shift_y*sin(0-ref_yaw);
+            pts_y[i] = shift_x*sin(0-ref_yaw) + shift_y*cos(0-ref_yaw);
           }
 
           // create a spline
@@ -224,9 +303,18 @@ int main() {
           double target_dist = sqrt((target_x*target_x) + (target_y*target_y));
           double x_add_on = 0;
 
-          // fill up the rest of our path planner agter filling it with previous points, always output 50 points
+          // fill up the rest of our path planner after filling it with previous points, always output 50 points
           for (int i=1; i<=50-previous_path_x.size(); ++i)
           {
+            ref_vel += speed_diff;
+            if (ref_vel > 49.8)
+            {
+              ref_vel = 49.8;
+            }
+            else if (ref_vel < 0.224)
+            {
+              ref_vel = 0.224;
+            }
             double N = (target_dist/(0.02*ref_vel/2.24));
             double x_point = x_add_on + (target_x)/N;
             double y_point = s(x_point);
