@@ -855,4 +855,16 @@ helpers.h
 /home/aalizade/Documents/Udacity_training/path_planning/src/helpers.h
 json.hpp
 /home/aalizade/Documents/Udacity_training/path_planning/src/json.hpp
+spline.h
+/home/aalizade/Documents/Udacity_training/path_planning/src/spline.h
+
+/home/aalizade/Documents/Udacity_training/path_planning/src/spline.h
+cstdio
+-
+cassert
+-
+vector
+-
+algorithm
+-
 
