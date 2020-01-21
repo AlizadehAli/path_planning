@@ -187,36 +187,6 @@ int main() {
               }
             }
 
-//              // check s value greater than mine and s gap
-//              if ((check_car_s>car_s) && ((check_car_s-car_s)<30))
-//              {
-//                // decrease reference velocity
-//                ref_vel = 29.8;
-//                too_close = true;
-//                if (lane > 0)
-//                {
-//                  lane = 0;
-//                }
-//              }
-//            }
-//          }
-
-          // check s value greater than mine and s gap
-//          if ((check_car_s>car_s) && ((check_car_s-car_s)<30))
-//          {
-//            // decrease reference velocity
-//            ref_vel = 29.8;
-//            too_close = true;
-//          }
-//
-//          if (too_close)
-//          {
-//            ref_vel -= 0.224;
-//          }
-//          else if (ref_vel<49.8)
-//          {
-//            ref_vel += 0.224;
-//          }
           // create a list of (x, y) waypoints
           vector<double> pts_x;
           vector<double> pts_y;
