@@ -33,7 +33,7 @@ int main() {
   int lane = 1;
 
   // reference velocity
-  double ref_vel = 49.8; //mile per hour
+  double ref_vel = 0.0; //mile per hour
 
   std::ifstream in_map_(map_file_.c_str(), std::ifstream::in);
 
@@ -125,8 +125,18 @@ int main() {
               {
                 // decrease reference velocity
                 ref_vel = 29.8;
+                too_close = true;
               }
             }
+          }
+
+          if (too_close)
+          {
+            ref_vel -= 0.224;
+          }
+          else if (ref_vel<49.8)
+          {
+            ref_vel += 0.224;
           }
           // create a list of (x, y) waypoints
           vector<double> pts_x;
