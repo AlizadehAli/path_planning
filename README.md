@@ -1,110 +1,146 @@
-# **Kidnapped Vehicle Project - Localization using Particle Filter**
-Udacity self-driving car nanodegree localization project
+# Path Planning Project
+Udacity Self-Driving Car Engineer Nanodegree Program
 ---
 ## Overview
-A robot has been kidnapped and transported to a new location! Luckily it has a map of this location, a (noisy) GPS estimate of its initial location, and lots of (noisy) sensor and control data. In this project I implemented a 2 dimensional particle filter in C++. The particle filter was given a map and some initial localization information (analogous to what a GPS would provide). At each time step, the gets observation and control data.
+Path planning is a critical, complex and principal module in a self-driving vehicle, since it covers a wide range of components in autonomous car ranging from the low level actuators, sensor, to the localization and prediction modules. One other obivous component is a trajectory generator that can compute a candidate trajectory to be evaluated by the planner. In this project, the objective is to design a path planner that is able to create smooth, safe paths for the car to follow along a 3 lane highway with traffic. The car must not violate a set of motion constraints named maximum velocity, maximum acceleration, maximum jerk while avoiding collision with other vehilces in the highway. Lane change is applicable a and necessary to maintained the car's speed close to the maximum allowable speed. 
 
- Input and Output variables are listed below. Inputs to the particle filter can be found in the `data` directory.
+### Simulator.
+You can download the Term3 Simulator which contains the Path Planning Project from the [releases tab (https://github.com/udacity/self-driving-car-sim/releases/tag/T3_v1.2).  
 
-| **INPUT** | Definition |
-|:---------:|:---------:|
-| sense_x | x position |
-| sense_y | y position |
-| sense_theta | Measured heading (yaw) angle |
-| previous_velocity | Previous velocity |
-| previous_yawrate | Previous yaw rate|
-| sense_observations_x | Noisy observation data of x positionfrom the simulator|
-| sense_observations_h | Noisy observation data of y positionfrom the simulator|
-
-| **OUTPUT** | Definition |
-|:---------:|:---------:|
-| best_particle_x | Best particle value for position x |
-| best_particle_y | Best particle value for position y |
-| best_particle_theta | Best particle value for yaw angle |
-| best_particle_associations | Best (x,y) sensed positions ID label |
-| best_particle_sense_x | List of sensed x positions |
-| best_particle_sense_y | List of sensed y positions |
-
-## Project steps
-
-Localization (particle filter) steps in this project:
-
-* Initialization function (estimate position from GPS data using particle filters, add random noise)
-* Prediction function (predict position based on adding velocity and yaw rate to particle filters, add random noise)
-* Update Weights function - Transformation of observation points to map coordinates (given in vehicle coordinates)
-* Update Weights function - Association of landmarks to the transformed observation points
-* Update Weights function - Calculation of multi-variate Gaussian distribution
-* Resample function - Resamples particles, with replacement occurring based on weighting distributions
-* Optimizing algorithm - Performance within required accuracy and speed
-
-
-## Running the Code
-This project involves the Term 2 Simulator which can be downloaded [here](https://github.com/udacity/self-driving-car-sim/releases). The main program can be built and ran by doing the following from the project top directory.
-
-1. mkdir build
-2. cd build
-3. cmake ..
-4. make
-5. ./particle_filter
-
-Alternatively some scripts have been included to streamline this process, these can be leveraged by executing the following in the top directory of the project:
-
-1. ./clean.sh
-2. ./build.sh
-3. ./run.sh
-
-## Implementing the Particle Filter
-The directory structure of this repository is as follows:
-
-```
-root
-|   build.sh
-|   clean.sh
-|   CMakeLists.txt
-|   README.md
-|   run.sh
-|
-|___data
-|   |   
-|   |   map_data.txt
-|   
-|   
-|___src
-    |   helper_functions.h
-    |   main.cpp
-    |   map.h
-    |   particle_filter.cpp
-    |   particle_filter.h
+To run the simulator on Mac/Linux, first make the binary file executable with the following command:
+```shell
+sudo chmod u+x {simulator_file_name}
 ```
 
-#### The Map*
-`map_data.txt` includes the position of landmarks (in meters) on an arbitrary Cartesian coordinate system. Each row has three columns
-1. x position
-2. y position
-3. landmark id
+#### The map of the highway is in data/highway_map.txt
+Each waypoint in the list contains  [x,y,s,dx,dy] values. x and y are the waypoint's map coordinate position, the s value is the distance along the road to get to that waypoint in meters, the dx and dy values define the unit normal vector pointing outward of the highway loop.
 
-## [Rubric points](https://review.udacity.com/#!/rubrics/747/view) 
+The highway's waypoints loop around so the frenet s value, distance along the road, goes from 0 to 6945.554.
 
-1. **Accuracy**: This criteria is checked automatically when ./run.sh is run in the terminal; the code outputs the following message which shows the success.
+## Basic Build Instructions
 
-```
-Success! Your particle filter passed!
-```
+1. Clone this repo.
+2. Make a build directory: `mkdir build && cd build`
+3. Compile: `cmake .. && make`
+4. Run it: `./path_planning`.
 
-The accuracy limit is defined as 1 meter in error for x and y translations, 0.05 rad in error for yaw, and 100 seconds of runtime for the particle filter. The accuracy of my code is measured by the error values as follows which are in the aforementioned limit.
+Here is the data provided from the Simulator to the C++ Program
 
-| **Variable** | **Error** |
-|:---------:|:---------:|
-| x position | 0.115 |
-| y position | 0.106 |
-| yaw | 0.004 |
+#### Main car's localization Data (No Noise)
+
+["x"] The car's x position in map coordinates
+
+["y"] The car's y position in map coordinates
+
+["s"] The car's s position in frenet coordinates
+
+["d"] The car's d position in frenet coordinates
+
+["yaw"] The car's yaw angle in the map
+
+["speed"] The car's speed in MPH
+
+#### Previous path data given to the Planner
+
+//Note: Return the previous list but with processed points removed, can be a nice tool to show how far along
+the path has processed since last time. 
+
+["previous_path_x"] The previous list of x points previously given to the simulator
+
+["previous_path_y"] The previous list of y points previously given to the simulator
+
+#### Previous path's end s and d values 
+
+["end_path_s"] The previous list's last point's frenet s value
+
+["end_path_d"] The previous list's last point's frenet d value
+
+#### Sensor Fusion Data, a list of all other car's attributes on the same side of the road. (No Noise)
+
+["sensor_fusion"] A 2d vector of cars and then that car's [car's unique ID, car's x position in map coordinates, car's y position in map coordinates, car's x velocity in m/s, car's y velocity in m/s, car's s position in frenet coordinates, car's d position in frenet coordinates. 
+
+## Details
+
+1. The car uses a perfect controller and will visit every (x,y) point it recieves in the list every .02 seconds. The units for the (x,y) points are in meters and the spacing of the points determines the speed of the car. The vector going from a point to the next point in the list dictates the angle of the car. Acceleration both in the tangential and normal directions is measured along with the jerk, the rate of change of total Acceleration. The (x,y) point paths that the planner recieves should not have a total acceleration that goes over 10 m/s^2, also the jerk should not go over 50 m/s^3. (NOTE: As this is BETA, these requirements might change. Also currently jerk is over a .02 second interval, it would probably be better to average total acceleration over 1 second and measure jerk from that.
+
+2. There will be some latency between the simulator running and the path planner returning a path, with optimized code usually its not very long maybe just 1-3 time steps. During this delay the simulator will continue using points that it was last given, because of this its a good idea to store the last points you have used so you can have a smooth transition. previous_path_x, and previous_path_y can be helpful for this transition since they show the last points given to the simulator controller with the processed points already removed. You would either return a path that extends this previous path or make sure to create a new path that has a smooth transition with this last path.
+
+## Tips
+
+A really helpful resource for doing this project and creating smooth trajectories was using http://kluge.in-chemnitz.de/opensource/spline/, the spline function is in a single hearder file is really easy to use.
+
+---
+
+## Dependencies
+
+* cmake >= 3.5
+  * All OSes: [click here for installation instructions](https://cmake.org/install/)
+* make >= 4.1
+  * Linux: make is installed by default on most Linux distros
+  * Mac: [install Xcode command line tools to get make](https://developer.apple.com/xcode/features/)
+  * Windows: [Click here for installation instructions](http://gnuwin32.sourceforge.net/packages/make.htm)
+* gcc/g++ >= 5.4
+  * Linux: gcc / g++ is installed by default on most Linux distros
+  * Mac: same deal as make - [install Xcode command line tools]((https://developer.apple.com/xcode/features/)
+  * Windows: recommend using [MinGW](http://www.mingw.org/)
+* [uWebSockets](https://github.com/uWebSockets/uWebSockets)
+  * Run either `install-mac.sh` or `install-ubuntu.sh`.
+  * If you install from source, checkout to commit `e94b6e1`, i.e.
+    ```
+    git clone https://github.com/uWebSockets/uWebSockets 
+    cd uWebSockets
+    git checkout e94b6e1
+    ```
+
+## Editor Settings
+
+We've purposefully kept editor configuration files out of this repo in order to
+keep it as simple and environment agnostic as possible. However, we recommend
+using the following settings:
+
+* indent using spaces
+* set tab width to 2 spaces (keeps the matrices in source code aligned)
+
+## Code Style
+
+Please (do your best to) stick to [Google's C++ style guide](https://google.github.io/styleguide/cppguide.html).
+
+## Project Instructions and Rubric
+
+Note: regardless of the changes you make, your project must be buildable using
+cmake and make!
 
 
-2. **Performance**: My particle filter completes execution within 48 seconds which is below the time limit of 100 seconds.
+## Call for IDE Profiles Pull Requests
 
-Here is the visualization of the code output which shows the success message, execution time and error values.
+Help your fellow students!
 
-![output](readme_imgs/output.png)
+We decided to create Makefiles with cmake to keep this project as platform
+agnostic as possible. Similarly, we omitted IDE profiles in order to ensure
+that students don't feel pressured to use one IDE or another.
 
+However! I'd love to help people get up and running with their IDEs of choice.
+If you've created a profile for an IDE that you think other students would
+appreciate, we'd love to have you add the requisite profile files and
+instructions to ide_profiles/. For example if you wanted to add a VS Code
+profile, you'd add:
+
+* /ide_profiles/vscode/.vscode
+* /ide_profiles/vscode/README.md
+
+The README should explain what the profile does, how to take advantage of it,
+and how to install it.
+
+Frankly, I've never been involved in a project with multiple IDE profiles
+before. I believe the best way to handle this would be to keep them out of the
+repo root to avoid clutter. My expectation is that most profiles will include
+instructions to copy files to a new location to get picked up by the IDE, but
+that's just a guess.
+
+One last note here: regardless of the IDE used, every submitted project must
+still be compilable with cmake and make./
+
+## How to write a README
+A well written README file can enhance your project and portfolio.  Develop your abilities to create professional README files by completing [this free course](https://www.udacity.com/course/writing-readmes--ud777).
 
 
