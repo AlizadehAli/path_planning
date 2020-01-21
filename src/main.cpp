@@ -97,9 +97,39 @@ int main() {
 
 //          TODO: define a path made up of (x,y) points that the car will visit
 //          sequentially every .02 seconds
-
+          int lane = 1;
+          double ref_vel = 49.8;
+          
           int prev_size = previous_path_x.size();
 
+          // collision avoidance! take surrounding cars' data from sensor fusion data
+          if (prev_size > 0)
+          {
+            car_s = end_path_s;
+          }
+          bool too_close = false;
+
+          // find reference velocity ref_v to use
+          for (int i=0; i<sensor_fusion.size(); ++i)
+          {
+            // car in the ego lane
+            float d = sensor_fusion[i][6];
+            if (d < (2+4*lane+2) && d > (2+4*lane-2))
+            {
+              double vx = sensor_fusion[i][3];
+              double vy = sensor_fusion[i][4];
+              double check_speed = sqrt(vx*vx+vy*vy);
+              double check_car_s = sensor_fusion[i][5];
+
+              check_car_s += ((double)prev_size*0.02*check_speed); // if using previous points can project s calues outward
+              // check s value greater than mine and s gap
+              if ((check_car_s>car_s) && ((check_car_s-car_s)<30))
+              {
+                // decrease reference velocity
+                ref_vel = 29.8;
+              }
+            }
+          }
           // create a list of (x, y) waypoints
           vector<double> pts_x;
           vector<double> pts_y;
@@ -140,7 +170,7 @@ int main() {
             pts_y.push_back(ref_y_prev);
             pts_y.push_back(ref_y);
           }
-          int lane = 1;
+
           // In Frenet add evely 30m spaced points ahead of the starting reference
           vector<double> next_wp0 = getXY(car_s+30, (2+4*lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
           vector<double> next_wp1 = getXY(car_s+60, (2+4*lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
@@ -186,7 +216,6 @@ int main() {
           double target_dist = sqrt((target_x*target_x) + (target_y*target_y));
           double x_add_on = 0;
 
-          double ref_vel = 49.8;
           // fill up the rest of our path planner agter filling it with previous points, always output 50 points
           for (int i=1; i<=50-previous_path_x.size(); ++i)
           {
