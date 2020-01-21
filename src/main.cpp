@@ -58,7 +58,7 @@ int main() {
   }
 
   h.onMessage([&map_waypoints_x,&map_waypoints_y,&map_waypoints_s,
-               &map_waypoints_dx,&map_waypoints_dy]
+               &map_waypoints_dx,&map_waypoints_dy, &ref_vel, &lane]
               (uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
                uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
@@ -97,9 +97,7 @@ int main() {
 
 //          TODO: define a path made up of (x,y) points that the car will visit
 //          sequentially every .02 seconds
-          int lane = 1;
-          double ref_vel = 49.8;
-          
+
           int prev_size = previous_path_x.size();
 
           // collision avoidance! take surrounding cars' data from sensor fusion data
