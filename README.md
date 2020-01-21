@@ -79,13 +79,41 @@ The submitted code compiles without error with `emake` and `make`. It generated 
 
 2. **Valid Trajectories**
 
-![output](readme_imgs/1.png)
+In order to demonstrate that my project meets the Rubic Points' requirements, the following screenshot of the running simulation is shown. As it can be noticed my algorithm has driven the car in the simulator for more than 1.5 lap with no constraint violation. The first image shows how the car is driving in a lane  where the second image whows how the car is changing the lane with maximum speed and yet respecting all the imposed constraints.
+
+in short, all criteria in this rubic point is met as follows:
+
+* The car drives within the speed limit
+* Max Acceleration and Jerk are not exceeded
+* No collisions
+* The car keeps the current lane till it finds an opportunity to make lane change and reach higher speed
+* The car is able to change lanes
 
 ![output](readme_imgs/1.png)
 
+
+![output](readme_imgs/2.png)
 
 3. **Reflection**
 
+Based on the provided code, the path planning algorithms is mainly written in src/main.cpp. The code is written modular addressing distinct functions. The code consists of prediction, behavior planning and trajectory generation. 
+
+##### Prediction
+
+Predictin function deals with the telemetry and sensor fusion data to decided whether a car is ahead, to the right or left of the ego vehicle. [line 108 to line 155](./src/main.cpp#L108) in `main.cpp` is the correponding part to the prediction step.
+
+##### Behavior Planning
+
+Bhevior planning in this project decides between the following decisions when a car is in front of the ego car:
+
+- Lane change?
+- Speed up / speed down?
+
+Based on the data from the prediction step, the behavior planning step increases/decreases the speed, ot make lane change when it is safe. [line 158 to line 188](./src/main.cpp#L158) in `main.cpp` is the correponding part to the prediction step.
+
+##### Trajectory generation
+
+This code does the calculation of the trajectory based on the speed and lane output from the behavior planning, car coordinates and past path points. [line 190 to line 306](./src/main.cpp#L190) are the parts in `main.cpp` code corresponding to the trajectory generation step. In order to ensure more continuity on the trajectory, the past trajectory points are copied to the new trajectory. The points are calculated by evaluating the spline and transforming the output coordinates to not local coordinates. Speed change is reasoned in the behavior part of the code, but it is used in this part to increase/decrease speed on every trajectory points instead of doing it for the complete trajectory.
 
 
 
